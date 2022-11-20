@@ -21,8 +21,8 @@ jobs:
           python3 ${{ github.workspace }}/.github/scripts/update_hacs_manifest.py --version ${{ steps.version.outputs.version }}
       - name: Create zip
         run: |
-          cd custom_components/webuntis
-          zip webuntis.zip -r ./
+          cd custom_components/ha_heliotherm
+          zip ha_heliotherm.zip -r ./
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v1-release
         with:

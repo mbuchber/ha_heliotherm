@@ -5,4 +5,13 @@
   "filename": "ha_heliotherm.zip",
   "homeassistant": "2022.11.0"
   "version": "v1.0.0",   
+  "hacs": "0.24.0",
+  "domains": [        
+        "binary_sensor",
+        "sensor",        
+        "climate",        
+        "select"
+   ],
+   "iot_class": "Local Polling",
+   "homeassistant": "0.115.0"
 }

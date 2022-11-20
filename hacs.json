@@ -4,5 +4,5 @@
   "zip_release": true,
   "filename": "ha_heliotherm.zip",
   "homeassistant": "2022.11.0"
-  "version": "v1.0.0"
+  "version": "v1.0.0",   
 }

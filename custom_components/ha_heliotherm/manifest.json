@@ -3,7 +3,7 @@
   "name": "HaHeliotherm",
   "config_flow": true,
   "documentation": "https://github.com/mbuchber/ha_heliotherm/",
-  "requirements": ["pymodbus>=2.5.3"],
+  "requirements": ["pymodbus==2.5.3"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},

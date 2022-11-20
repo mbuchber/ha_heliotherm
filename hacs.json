@@ -3,7 +3,7 @@
   "render_readme": true, 
   "zip_release": true,
   "filename": "ha_heliotherm.zip",
-  "homeassistant": "2021.11.0"
+  "homeassistant": "2021.11.0",
   "version": "v1.0.0",   
   "hacs": "0.24.0",
   "domains": [        

@@ -2,7 +2,7 @@
   "domain": "ha_heliotherm",
   "name": "HaHeliotherm",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/ha_heliotherm",
+  "documentation": "https://github.com/mbuchber/ha_heliotherm",
   "requirements": ["pymodbus>=2.5.3"],
   "ssdp": [],
   "zeroconf": [],

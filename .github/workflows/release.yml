@@ -24,7 +24,7 @@ jobs:
           cd custom_components/ha_heliotherm
           zip ha_heliotherm.zip -r ./
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v2-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./custom_components/ha_heliotherm/ha_heliotherm.zip

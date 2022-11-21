@@ -15,6 +15,10 @@ Home Assistant Custom Component for Heliotherm Heatpumps
 
 This component is easiest installed using [HACS](https://github.com/custom-components/hacs).
 
+To download the component, [the repository URL must be added as custom repository to HACS](https://hacs.xyz/docs/faq/custom_repositories/).
+
+Use the URL: https://github.com/mbuchber/ha_heliotherm
+
 ### Manual installation
 
 Copy all files from custom_components/ha_heliotherm/ to custom_components/ha_heliotherm/ inside your config Home Assistant directory.

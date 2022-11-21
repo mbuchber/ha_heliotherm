@@ -1,18 +1,10 @@
 """Support for weenect select entities."""
 from __future__ import annotations
-import asyncio
+from . import HaHeliothermModbusHub
 
-from typing import List
 
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-from homeassistant.components.ha_heliotherm import HaHeliothermModbusHub
+from homeassistant.components.select import SelectEntity
+from homeassistant.core import callback
 
 from .const import *
 

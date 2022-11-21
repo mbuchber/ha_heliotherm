@@ -1,19 +1,15 @@
-import asyncio
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.components.climate import (
     ClimateEntity,
-    ClimateEntityFeature,
     HVACMode,
 )
 
-from homeassistant.components.ha_heliotherm import HaHeliothermModbusHub
+from . import HaHeliothermModbusHub
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional
 
-
-import homeassistant.util.dt as dt_util
 
 from .const import (
     ATTR_MANUFACTURER,

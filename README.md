@@ -1,5 +1,5 @@
 # HaHeliotherm - Component
-<img src="[/heliotherm.png](https://github.com/mbuchber/ha_heliotherm/blob/main/heliotherm.png)"  width="512">
+<img src="https://github.com/mbuchber/ha_heliotherm/blob/b3bb7d035f186dd6520c8395d5a5111821dac922/heliotherm.png"  width="512">
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 ![Version](https://img.shields.io/github/v/release/mbuchber/ha_heliotherm?style=plastic)

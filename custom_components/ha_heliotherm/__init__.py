@@ -7,7 +7,7 @@ import logging
 import threading
 from typing import Optional
 
-from pymodbus.client.tcp import ModbusTcpClient
+from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
@@ -152,7 +152,7 @@ class HaHeliothermModbusHub:
     def read_input_registers(self, slave, address, count):
         """Read holding registers."""
         with self._lock:
-            kwargs = {"slave": slave} if slave else {}
+            kwargs = {"slave": slave, "unit": slave} if slave else {}
             return self._client.read_input_registers(address, count, **kwargs)
 
     def getsignednumber(self, number, bitlength=16):
@@ -231,14 +231,16 @@ class HaHeliothermModbusHub:
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        self._client.write_register(100, betriebsart_nr, slave=1)
+        kwargs = {"slave": 1, "unit": 1}
+        self._client.write_register(100, betriebsart_nr, kwargs=kwargs)
         await self.async_refresh_modbus_data()
 
     async def set_raumtemperatur(self, temperature: float):
         if temperature is None:
             return
         temp_int = int(temperature * 10)
-        self._client.write_register(101, temp_int, slave=1)
+        kwargs = {"slave": 1, "unit": 1}
+        self._client.write_register(101, temp_int, kwargs=kwargs)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
@@ -246,17 +248,15 @@ class HaHeliothermModbusHub:
             return
         temp_max_int = int(temp_max * 10)
         temp_min_int = int(temp_min * 10)
-        self._client.write_register(105, temp_max_int, slave=1)
-        self._client.write_register(106, temp_min_int, slave=1)
+        self._client.write_register(105, temp_max_int, kwargs={"slave": 1, "unit": 1})
+        self._client.write_register(106, temp_min_int, kwargs={"slave": 1, "unit": 1})
         await self.async_refresh_modbus_data()
 
     def read_modbus_registers(self):
         """Read from modbus registers"""
         modbusdata = self.read_input_registers(slave=1, address=10, count=32)
         modbusdata2 = self.read_input_registers(slave=1, address=60, count=16)
-        modbusdata3 = self._client.read_holding_registers(
-            slave=1, address=100, count=27
-        )
+        modbusdata3 = self._client.read_holding_registers(address=100, count=27, unit=1)
 
         # if modbusdata.isError():
         #    return False

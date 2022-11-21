@@ -7,25 +7,19 @@ import re
 import logging
 from typing import Any
 
-from homeassistant.components.ha_heliotherm import PLATFORMS
 import homeassistant.helpers.config_validation as cv
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 
 from homeassistant.core import HomeAssistant, callback
-from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.reload import async_reload_integration_platforms
 
-from .const import DOMAIN, DEFAULT_NAME, DEFAULT_PORT, DEFAULT_SCAN_INTERVAL
+from .const import DOMAIN, DEFAULT_NAME, DEFAULT_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO adjust the data schema to the data that you need
 DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_NAME, default=DEFAULT_NAME): cv.string,

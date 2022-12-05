@@ -92,7 +92,9 @@ class HaHeliothermModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(host=host, port=port, timeout=5)
+        self._client = ModbusTcpClient(
+            host=host, port=port, timeout=5, retries=10, retry_on_empty=True
+        )
         self._lock = threading.Lock()
         self._name = name
         self._scan_interval = timedelta(seconds=scan_interval)
@@ -240,7 +242,7 @@ class HaHeliothermModbusHub:
             return
         temp_int = int(temperature * 10)
         kwargs = {"slave": 1, "unit": 1}
-        self._client.write_register(101, temp_int, kwargs=kwargs)
+        response = self._client.write_register(101, temp_int, kwargs=kwargs)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):

@@ -93,7 +93,7 @@ class HaHeliothermModbusHub:
         """Initialize the Modbus hub."""
         self._hass = hass
         self._client = ModbusTcpClient(
-            host=host, port=port, timeout=5, retries=10, retry_on_empty=True
+            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
         )
         self._lock = threading.Lock()
         self._name = name
@@ -233,16 +233,14 @@ class HaHeliothermModbusHub:
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        kwargs = {"slave": 1, "unit": 1}
-        self._client.write_register(100, betriebsart_nr, kwargs=kwargs)
+        self._client.write_register(address=100, value=betriebsart_nr, slave=1, unit=1)
         await self.async_refresh_modbus_data()
 
     async def set_raumtemperatur(self, temperature: float):
         if temperature is None:
             return
         temp_int = int(temperature * 10)
-        kwargs = {"slave": 1, "unit": 1}
-        response = self._client.write_register(101, temp_int, kwargs=kwargs)
+        self._client.write_register(address=101, value=temp_int, slave=1, unit=1)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
@@ -250,8 +248,8 @@ class HaHeliothermModbusHub:
             return
         temp_max_int = int(temp_max * 10)
         temp_min_int = int(temp_min * 10)
-        self._client.write_register(105, temp_max_int, kwargs={"slave": 1, "unit": 1})
-        self._client.write_register(106, temp_min_int, kwargs={"slave": 1, "unit": 1})
+        self._client.write_register(address=105, value=temp_max_int, slave=1, unit=1)
+        self._client.write_register(address=106, value=temp_min_int, slave=1, unit=1)
         await self.async_refresh_modbus_data()
 
     def read_modbus_registers(self):

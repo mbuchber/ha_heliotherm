@@ -4,7 +4,7 @@
   "zip_release": true,
   "filename": "ha_heliotherm.zip",
   "homeassistant": "0.100.0",
-  "version": "v1.0.3",   
+  "version": "v1.0.4",   
   "hacs": "0.24.0",
   "domains": [        
         "binary_sensor",

@@ -164,11 +164,11 @@ class HaHeliothermModbusHub:
         else:
             return number & mask
 
-    def checkval(self, value, scale):
+    def checkval(self, value, scale, bitlength=16):
         """Check value for missing item"""
         if value is None:
             return None
-        value = self.getsignednumber(value)
+        value = self.getsignednumber(value, bitlength)
         value = round(value * scale, 1)
         if value == -50.0:
             value = None
@@ -379,28 +379,28 @@ class HaHeliothermModbusHub:
         )
 
         wmz_heizung = decoder.decode_32bit_uint()
-        self.data["wmz_heizung"] = self.checkval(wmz_heizung, 1)
+        self.data["wmz_heizung"] = self.checkval(wmz_heizung, 1, 32)
 
         stromz_heizung = decoder.decode_32bit_uint()
-        self.data["stromz_heizung"] = self.checkval(stromz_heizung, 1)
+        self.data["stromz_heizung"] = self.checkval(stromz_heizung, 1, 32)
 
         wmz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["wmz_brauchwasser"] = self.checkval(wmz_brauchwasser, 1)
+        self.data["wmz_brauchwasser"] = self.checkval(wmz_brauchwasser, 1, 32)
 
         stromz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["stromz_brauchwasser"] = self.checkval(stromz_brauchwasser, 1)
+        self.data["stromz_brauchwasser"] = self.checkval(stromz_brauchwasser, 1, 32)
 
         stromz_gesamt = decoder.decode_32bit_uint()
-        self.data["stromz_gesamt"] = self.checkval(stromz_gesamt, 1)
+        self.data["stromz_gesamt"] = self.checkval(stromz_gesamt, 1, 32)
 
         stromz_leistung = decoder.decode_32bit_uint()
-        self.data["stromz_leistung"] = self.checkval(stromz_leistung, 1)
+        self.data["stromz_leistung"] = self.checkval(stromz_leistung, 1, 32)
 
         wmz_gesamt = decoder.decode_32bit_uint()
-        self.data["wmz_gesamt"] = self.checkval(wmz_gesamt, 1)
+        self.data["wmz_gesamt"] = self.checkval(wmz_gesamt, 1, 32)
 
         wmz_leistung = decoder.decode_32bit_uint()
-        self.data["wmz_leistung"] = self.checkval(wmz_leistung, 1)
+        self.data["wmz_leistung"] = self.checkval(wmz_leistung, 1, 32)
 
         # -----------------------------------------------------------------------------------
 

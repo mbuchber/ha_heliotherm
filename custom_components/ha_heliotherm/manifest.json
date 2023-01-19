@@ -10,6 +10,6 @@
   "dependencies": [],
   "codeowners": ["@mbuchber"],
   "iot_class": "local_polling",
-  "version": "v1.0.0",
+  "version": "v1.0.4",
   "issue_tracker": "https://github.com/mbuchber/ha_heliotherm/issues"
 }

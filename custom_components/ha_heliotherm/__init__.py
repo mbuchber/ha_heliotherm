@@ -376,7 +376,7 @@ class HaHeliothermModbusHub:
 
         # -----------------------------------------------------------------------------------
         decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, wordorder=Endian.Big
+            modbusdata2.registers, wordorder=Endian.Little
         )
 
         wmz_heizung = decoder.decode_32bit_uint()

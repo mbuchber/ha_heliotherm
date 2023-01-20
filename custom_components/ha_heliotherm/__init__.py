@@ -376,32 +376,32 @@ class HaHeliothermModbusHub:
 
         # -----------------------------------------------------------------------------------
         decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, wordorder=Endian.Little
+            modbusdata2.registers, wordorder=Endian.Big
         )
 
-        wmz_heizung = decoder.decode_32bit_uint()
-        self.data["wmz_heizung"] = self.checkval(wmz_heizung, 1, 32)
+        wmz_heizung = decoder.decode_32bit_float()
+        self.data["wmz_heizung"] = wmz_heizung
 
-        stromz_heizung = decoder.decode_32bit_uint()
-        self.data["stromz_heizung"] = self.checkval(stromz_heizung, 1, 32)
+        stromz_heizung = decoder.decode_32bit_float()
+        self.data["stromz_heizung"] = stromz_heizung
 
-        wmz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["wmz_brauchwasser"] = self.checkval(wmz_brauchwasser, 1, 32)
+        wmz_brauchwasser = decoder.decode_32bit_float()
+        self.data["wmz_brauchwasser"] = wmz_brauchwasser
 
-        stromz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["stromz_brauchwasser"] = self.checkval(stromz_brauchwasser, 1, 32)
+        stromz_brauchwasser = decoder.decode_32bit_float()
+        self.data["stromz_brauchwasser"] = stromz_brauchwasser
 
-        stromz_gesamt = decoder.decode_32bit_uint()
-        self.data["stromz_gesamt"] = self.checkval(stromz_gesamt, 1, 32)
+        stromz_gesamt = decoder.decode_32bit_float()
+        self.data["stromz_gesamt"] = stromz_gesamt
 
-        stromz_leistung = decoder.decode_32bit_uint()
-        self.data["stromz_leistung"] = self.checkval(stromz_leistung, 1, 32)
+        stromz_leistung = decoder.decode_32bit_float()
+        self.data["stromz_leistung"] = stromz_leistung
 
-        wmz_gesamt = decoder.decode_32bit_uint()
-        self.data["wmz_gesamt"] = self.checkval(wmz_gesamt, 1, 32)
+        wmz_gesamt = decoder.decode_32bit_float()
+        self.data["wmz_gesamt"] = wmz_gesamt
 
-        wmz_leistung = decoder.decode_32bit_uint()
-        self.data["wmz_leistung"] = self.checkval(wmz_leistung, 1, 32)
+        wmz_leistung = decoder.decode_32bit_float()
+        self.data["wmz_leistung"] = wmz_leistung
 
         # -----------------------------------------------------------------------------------
 

@@ -376,31 +376,31 @@ class HaHeliothermModbusHub:
 
         # -----------------------------------------------------------------------------------
         decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, wordorder=Endian.Big
+            modbusdata2.registers, byteorder=Endian.Big
         )
 
-        wmz_heizung = decoder.decode_32bit_float()
+        wmz_heizung = decoder.decode_32bit_uint()
         self.data["wmz_heizung"] = wmz_heizung
 
-        stromz_heizung = decoder.decode_32bit_float()
+        stromz_heizung = decoder.decode_32bit_uint()
         self.data["stromz_heizung"] = stromz_heizung
 
-        wmz_brauchwasser = decoder.decode_32bit_float()
+        wmz_brauchwasser = decoder.decode_32bit_uint()
         self.data["wmz_brauchwasser"] = wmz_brauchwasser
 
-        stromz_brauchwasser = decoder.decode_32bit_float()
+        stromz_brauchwasser = decoder.decode_32bit_uint()
         self.data["stromz_brauchwasser"] = stromz_brauchwasser
 
-        stromz_gesamt = decoder.decode_32bit_float()
+        stromz_gesamt = decoder.decode_32bit_uint()
         self.data["stromz_gesamt"] = stromz_gesamt
 
-        stromz_leistung = decoder.decode_32bit_float()
+        stromz_leistung = decoder.decode_32bit_uint()
         self.data["stromz_leistung"] = stromz_leistung
 
-        wmz_gesamt = decoder.decode_32bit_float()
+        wmz_gesamt = decoder.decode_32bit_uint()
         self.data["wmz_gesamt"] = wmz_gesamt
 
-        wmz_leistung = decoder.decode_32bit_float()
+        wmz_leistung = decoder.decode_32bit_uint()
         self.data["wmz_leistung"] = wmz_leistung
 
         # -----------------------------------------------------------------------------------

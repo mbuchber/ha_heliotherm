@@ -1,26 +1,32 @@
 {
-    "config": {
-      "step": {
-        "user": {
-          "data": {
-            "name": "Name",
-            "host": "Host",
-            "port": "Port",
-            "scan_interval": "Scan interval"
-          }
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Name",
+          "host": "Host",
+          "port": "Port",
+          "scan_interval": "Scan interval"
         }
+      },
+      "error": {
+        "already_configured": "Already configured.",
+        "cannot_connect": "Cannot connect",
+        "invalid_auth": "Invalid authrntication",
+        "unknown": "Unknown error"
       }
-    },
-    "options" : {
-      "step" : {
-        "init": {
-          "title": "Options",
-          "data": {
-            "host": "Host",
-            "port": "Port",
-            "scan_interval": "Scan interval"
-          }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "scan_interval": "Scan interval"
         }
       }
     }
   }
+}

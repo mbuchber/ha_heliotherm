@@ -9,6 +9,9 @@
           "scan_interval": "Scan interval"
         }
       },
+      "abort": {
+        "already_configured": "Already configured."
+      },
       "error": {
         "already_configured": "Already configured.",
         "cannot_connect": "Cannot connect",

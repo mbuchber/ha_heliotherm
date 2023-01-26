@@ -10,7 +10,6 @@
           }
         },
         "error": {
-          "invalid_auth": "Invalid authentication.",
           "unknown": "Unknown error."
         }
       }

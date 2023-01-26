@@ -10,7 +10,6 @@
           }
         },
         "error": {
-          "cannot_connect": "Cannot connect.",
           "invalid_auth": "Invalid authentication.",
           "unknown": "Unknown error."
         }

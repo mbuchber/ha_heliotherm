@@ -8,9 +8,6 @@
           "port": "Port",
           "scan_interval": "Scan interval"
         }
-      },
-      "abort": {
-        "already_configured": "Already configured."
       }
     }
   },

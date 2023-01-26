@@ -35,3 +35,21 @@ When adding the component to the Home Assistant intance, the config dialog will 
 ## Entities
 
 The integration creates multiple entities for recieving that states of the heatpump and for controlling mode of operation, heating room temperature and warm water heating.
+
+## Activating Modbus-TCP using Heliotherm Webinterface
+- Go to the default web page of your Heliotherm. (Served on port 80 of HT-IP address)
+- 'swipe' left to page 3 of the default UI (the little circles at the bottom represent the page you are looking at and can you also press the 3rd circle)
+- Press 'Settings' (cog-wheels icon)
+- Now you have two options 1) User, 2) Service. For now choose 'Service' (we will come back later for User part)
+- Enter user/pwd (admin/superuser)*
+- On new page choose "Main Setting"
+- On new page choose "Modbus"
+- On new page choose either TCP (modbus over IP) or RTU (modbus over RS485). Only choose 1! Can't both be on. If your HT has and ethernet connection on your local network would recommend to use TCP.
+- Choose "Turn On" under TCP in drop down box and leave the default settings (slave means the slave address of the modbus)
+- press your browser back button 3 times
+- (now you are back to 1)User 2)Service.). Now choose "User"
+- Press button "Restart" in the new screen
+- Done (take a minute to reboot)
+
+If you have setup HA device already the data should be getting in at this point
+Disclaimer: Use at own risk. As super user you can do quite some settings that should not be done if you do not know what you are doing. In other words: Don't change any settings unless you have been instructed to by a HT expert as super user.

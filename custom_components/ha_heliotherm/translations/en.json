@@ -11,12 +11,6 @@
       },
       "abort": {
         "already_configured": "Already configured."
-      },
-      "error": {
-        "already_configured": "Already configured.",
-        "cannot_connect": "Cannot connect",
-        "invalid_auth": "Invalid authrntication",
-        "unknown": "Unknown error"
       }
     }
   },

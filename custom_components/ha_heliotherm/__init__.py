@@ -361,7 +361,7 @@ class HaHeliothermModbusHub:
         self.data["kuehlen_umv_passiv"] = "off" if (kuehlen_umv_passiv == 0) else "on"
 
         expansionsventil = modbusdata.registers[30]
-        self.data["expansionsventil"] = self.checkval(expansionsventil, 1)
+        self.data["expansionsventil"] = self.checkval(expansionsventil, 0.1)
 
         verdichteranforderung = modbusdata.registers[31]
         self.data["verdichteranforderung"] = (

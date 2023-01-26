@@ -8,9 +8,6 @@
             "port": "Port",
             "scan_interval": "Scan interval"
           }
-        },
-        "error": {
-          "unknown": "Unknown error."
         }
       }
     },

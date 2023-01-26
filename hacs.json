@@ -4,6 +4,5 @@
   "zip_release": true,
   "filename": "ha_heliotherm.zip",
   "homeassistant": "0.100.0",
-  "hacs": "0.24.0",
-   "iot_class": "Local Polling"   
+  "hacs": "0.24.0"
 }

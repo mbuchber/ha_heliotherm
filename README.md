@@ -6,6 +6,7 @@
 ![Downloads](https://img.shields.io/github/downloads/mbuchber/ha_heliotherm/total)
 
 Home Assistant Custom Component for Heliotherm Heatpumps
+Also works fine with Brötje NEO heatpumps with NEO-RKM.
 
 ![Example screenshot of dashboard](/Screenshot.png)
 

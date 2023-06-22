@@ -400,7 +400,7 @@ class HaHeliothermModbusHub:
         wmz_gesamt = decoder.decode_32bit_uint()
         self.data["wmz_gesamt"] = wmz_gesamt
 
-        wmz_leistung = decoder.decode_32bit_uint()
+        wmz_leistung = decoder.decode_32bit_uint() * 0.1
         self.data["wmz_leistung"] = wmz_leistung
 
         # -----------------------------------------------------------------------------------

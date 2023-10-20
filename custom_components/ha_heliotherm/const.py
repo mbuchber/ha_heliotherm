@@ -211,6 +211,7 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "cop": HaHeliothermSensorEntityDescription(
         name="COP",
         key="cop",
+        native_unit_of_measurement="",
     ),
     "temp_frischwasser": HaHeliothermSensorEntityDescription(
         name="Temp. Frischwasser",

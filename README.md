@@ -24,8 +24,8 @@ Use the URL: https://github.com/mbuchber/ha_heliotherm
 Copy all files from custom_components/ha_heliotherm/ to custom_components/ha_heliotherm/ inside your config Home Assistant directory.
 
 ### Prerequisites
-- Ownership of a Heliotherm heatpump ;)
-- Some network connection to the heatpump (RS-232 to Modbus-TCP or Heliotherm RCG-Interface)
+- Ownership of a Heliotherm heatpump or a Brötje NEO heatpump;)
+- Some network connection to the heatpump (RS-232 to Modbus-TCP, Heliotherm RCG-Interface or a Brötje NEO-RKM interface)
     - The original from Heliotherm is the Remote Control Gateway (RCG) that also has its own Web interface and SD-card slot etc. (see docs folder for more information on RCG)    
     - Untested - but reported that it can work - RS232 to Modbus interfaces like these (https://www.antratek.de/rs232-modbus-gateway, https://www.wish.com/product/5fa10f7070a46f003d78e096)
     - See also here: https://loxwiki.atlassian.net/wiki/spaces/LOX/pages/1583089663/Heliotherm+Open+Source

@@ -335,7 +335,7 @@ class HaHeliothermModbusHub:
         self.data["temp_frischwasser"] = self.checkval(temp_frischwasser, 0.1)
 
         on_off_evu_sperre = modbusdata.registers[22]
-        self.data["on_off_evu_sperre"] = "off" if (on_off_evu_sperre == 0) else "on"
+        self.data["on_off_evu_sperre"] = "on" if (on_off_evu_sperre == 0) else "off"
 
         temp_aussen_verzoegert = modbusdata.registers[23]
         self.data["temp_aussen_verzoegert"] = self.checkval(temp_aussen_verzoegert, 0.1)

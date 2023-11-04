@@ -200,7 +200,7 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "wmz_durchfluss": HaHeliothermSensorEntityDescription(
         name="WMZ_Durchfluss",
         key="wmz_durchfluss",
-        native_unit_of_measurement="l/h",
+        native_unit_of_measurement="l/min",
     ),
     "n_soll_verdichter": HaHeliothermSensorEntityDescription(
         name="n-Soll Verdichter",

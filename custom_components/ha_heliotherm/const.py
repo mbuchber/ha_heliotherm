@@ -112,6 +112,36 @@ SELECT_TYPES: dict[str, list[HaHeliothermSelectEntityDescription]] = {
         ],
         default_select_option="Auto",
     ),
+    "select_mkr1_betriebsart": HaHeliothermSelectEntityDescription(
+        name="MKR 1 Betriebsart",
+        key="select_mkr1_betriebsart",
+        select_options=[
+            "Aus",
+            "Auto",
+            "Kühlen",
+            "Sommer",
+            "Dauerbetrieb",
+            "Absenken",
+            "Urlaub",
+            "Party",
+        ],
+        default_select_option="Auto",
+    ),
+    "select_mkr2_betriebsart": HaHeliothermSelectEntityDescription(
+        name="MKR 2 Betriebsart",
+        key="select_mkr2_betriebsart",
+        select_options=[
+            "Aus",
+            "Auto",
+            "Kühlen",
+            "Sommer",
+            "Dauerbetrieb",
+            "Absenken",
+            "Urlaub",
+            "Party",
+        ],
+        default_select_option="Auto",
+    ),
 }
 
 SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {

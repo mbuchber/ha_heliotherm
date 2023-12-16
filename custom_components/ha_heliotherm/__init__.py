@@ -219,6 +219,12 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "select_betriebsart":
             await self.set_betriebsart(option)
             return
+        if entity.entity_description.key == "select_mkr1_betriebsart":
+            await self.set_mkr1_betriebsart(option)
+            return
+        if entity.entity_description.key == "select_mkr2_betriebsart":
+            await self.set_mkr2_betriebsart(option)
+            return
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
@@ -233,6 +239,20 @@ class HaHeliothermModbusHub:
         if betriebsart_nr is None:
             return
         self._client.write_register(address=100, value=betriebsart_nr, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_mkr1_betriebsart(self, betriebsart: str):
+        betriebsart_nr = self.getbetriebsartnr(betriebsart)
+        if betriebsart_nr is None:
+            return
+        self._client.write_register(address=107, value=betriebsart_nr, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_mkr2_betriebsart(self, betriebsart: str):
+        betriebsart_nr = self.getbetriebsartnr(betriebsart)
+        if betriebsart_nr is None:
+            return
+        self._client.write_register(address=112, value=betriebsart_nr, slave=1)
         await self.async_refresh_modbus_data()
 
     async def set_raumtemperatur(self, temperature: float):
@@ -407,6 +427,12 @@ class HaHeliothermModbusHub:
 
         select_betriebsart = modbusdata3.registers[0]
         self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
+
+        select_mkr1_betriebsart = modbusdata3.registers[7]
+        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
+
+        select_mkr2_betriebsart = modbusdata3.registers[12]
+        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
 
         climate_hkr_raum_soll = modbusdata3.registers[1]
         self.data["climate_hkr_raum_soll"] = {

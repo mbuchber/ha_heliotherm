@@ -1,10 +1,7 @@
 """Constants for the HaHeliotherm integration."""
 
 from dataclasses import dataclass
-from homeassistant.components.climate import (
-    ClimateEntityDescription,
-    ClimateEntityFeature,
-)
+from homeassistant.components.climate import *
 
 from homeassistant.components.sensor import (
     SensorEntityDescription,
@@ -68,8 +65,10 @@ class HaHeliothermClimateEntityDescription(ClimateEntityDescription):
 
     min_value: float = None
     max_value: float = None
+    target_temperature: float = None
     step: float = None
     hvac_modes: list[str] = None
+    hvac_mode: HVACMode = HVACMode.AUTO
     temperature_unit: str = "°C"
     supported_features: ClimateEntityFeature = ClimateEntityFeature.TARGET_TEMPERATURE
 
@@ -82,6 +81,9 @@ CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
         max_value=25,
         step=0.5,
         temperature_unit="°C",
+        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE,
+        hvac_mode=HVACMode.AUTO,
+        hvac_modes=[HVACMode.AUTO],
     ),
     "climate_ww_bereitung": HaHeliothermClimateEntityDescription(
         name="Warmwasserbereitung",
@@ -100,36 +102,6 @@ SELECT_TYPES: dict[str, list[HaHeliothermSelectEntityDescription]] = {
     "select_betriebsart": HaHeliothermSelectEntityDescription(
         name="Betriebsart",
         key="select_betriebsart",
-        select_options=[
-            "Aus",
-            "Auto",
-            "Kühlen",
-            "Sommer",
-            "Dauerbetrieb",
-            "Absenken",
-            "Urlaub",
-            "Party",
-        ],
-        default_select_option="Auto",
-    ),
-    "select_mkr1_betriebsart": HaHeliothermSelectEntityDescription(
-        name="MKR 1 Betriebsart",
-        key="select_mkr1_betriebsart",
-        select_options=[
-            "Aus",
-            "Auto",
-            "Kühlen",
-            "Sommer",
-            "Dauerbetrieb",
-            "Absenken",
-            "Urlaub",
-            "Party",
-        ],
-        default_select_option="Auto",
-    ),
-    "select_mkr2_betriebsart": HaHeliothermSelectEntityDescription(
-        name="MKR 2 Betriebsart",
-        key="select_mkr2_betriebsart",
         select_options=[
             "Aus",
             "Auto",
@@ -230,7 +202,7 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "wmz_durchfluss": HaHeliothermSensorEntityDescription(
         name="WMZ_Durchfluss",
         key="wmz_durchfluss",
-        native_unit_of_measurement="l/min",
+        native_unit_of_measurement="l/h",
     ),
     "n_soll_verdichter": HaHeliothermSensorEntityDescription(
         name="n-Soll Verdichter",
@@ -241,7 +213,6 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "cop": HaHeliothermSensorEntityDescription(
         name="COP",
         key="cop",
-        native_unit_of_measurement="",
     ),
     "temp_frischwasser": HaHeliothermSensorEntityDescription(
         name="Temp. Frischwasser",

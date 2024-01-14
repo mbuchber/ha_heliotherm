@@ -42,7 +42,7 @@ async def async_setup(hass, config):
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up a HaHeliotherm modbus."""
+    """Set up a HaHeliotherm mobus."""
     host = entry.data[CONF_HOST]
     name = entry.data[CONF_NAME]
     port = entry.data[CONF_PORT]
@@ -92,9 +92,7 @@ class HaHeliothermModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(
-            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
-        )
+        self._client = ModbusTcpClient(host=host, port=port, timeout=5)
         self._lock = threading.Lock()
         self._name = name
         self._scan_interval = timedelta(seconds=scan_interval)
@@ -154,7 +152,8 @@ class HaHeliothermModbusHub:
     def read_input_registers(self, slave, address, count):
         """Read holding registers."""
         with self._lock:
-            return self._client.read_input_registers(address, count, slave)
+            kwargs = {"slave": slave} if slave else {}
+            return self._client.read_input_registers(address, count, **kwargs)
 
     def getsignednumber(self, number, bitlength=16):
         mask = (2**bitlength) - 1
@@ -163,11 +162,11 @@ class HaHeliothermModbusHub:
         else:
             return number & mask
 
-    def checkval(self, value, scale, bitlength=16):
+    def checkval(self, value, scale):
         """Check value for missing item"""
         if value is None:
             return None
-        value = self.getsignednumber(value, bitlength)
+        value = self.getsignednumber(value)
         value = round(value * scale, 1)
         if value == -50.0:
             value = None
@@ -219,12 +218,6 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "select_betriebsart":
             await self.set_betriebsart(option)
             return
-        if entity.entity_description.key == "select_mkr1_betriebsart":
-            await self.set_mkr1_betriebsart(option)
-            return
-        if entity.entity_description.key == "select_mkr2_betriebsart":
-            await self.set_mkr2_betriebsart(option)
-            return
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
@@ -238,28 +231,14 @@ class HaHeliothermModbusHub:
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        self._client.write_register(address=100, value=betriebsart_nr, slave=1)
-        await self.async_refresh_modbus_data()
-
-    async def set_mkr1_betriebsart(self, betriebsart: str):
-        betriebsart_nr = self.getbetriebsartnr(betriebsart)
-        if betriebsart_nr is None:
-            return
-        self._client.write_register(address=107, value=betriebsart_nr, slave=1)
-        await self.async_refresh_modbus_data()
-
-    async def set_mkr2_betriebsart(self, betriebsart: str):
-        betriebsart_nr = self.getbetriebsartnr(betriebsart)
-        if betriebsart_nr is None:
-            return
-        self._client.write_register(address=112, value=betriebsart_nr, slave=1)
+        self._client.write_register(100, betriebsart_nr, slave=1)
         await self.async_refresh_modbus_data()
 
     async def set_raumtemperatur(self, temperature: float):
         if temperature is None:
             return
         temp_int = int(temperature * 10)
-        self._client.write_register(address=101, value=temp_int, slave=1)
+        self._client.write_register(101, temp_int, slave=1)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
@@ -267,8 +246,8 @@ class HaHeliothermModbusHub:
             return
         temp_max_int = int(temp_max * 10)
         temp_min_int = int(temp_min * 10)
-        self._client.write_register(address=105, value=temp_max_int, slave=1)
-        self._client.write_register(address=106, value=temp_min_int, slave=1)
+        self._client.write_register(105, temp_max_int, slave=1)
+        self._client.write_register(106, temp_min_int, slave=1)
         await self.async_refresh_modbus_data()
 
     def read_modbus_registers(self):
@@ -276,7 +255,7 @@ class HaHeliothermModbusHub:
         modbusdata = self.read_input_registers(slave=1, address=10, count=32)
         modbusdata2 = self.read_input_registers(slave=1, address=60, count=16)
         modbusdata3 = self._client.read_holding_registers(
-            address=100, count=27, slave=1
+            slave=1, address=100, count=27
         )
 
         # if modbusdata.isError():
@@ -355,7 +334,7 @@ class HaHeliothermModbusHub:
         self.data["temp_frischwasser"] = self.checkval(temp_frischwasser, 0.1)
 
         on_off_evu_sperre = modbusdata.registers[22]
-        self.data["on_off_evu_sperre"] = "on" if (on_off_evu_sperre == 0) else "off"
+        self.data["on_off_evu_sperre"] = "off" if (on_off_evu_sperre == 0) else "on"
 
         temp_aussen_verzoegert = modbusdata.registers[23]
         self.data["temp_aussen_verzoegert"] = self.checkval(temp_aussen_verzoegert, 0.1)
@@ -381,7 +360,7 @@ class HaHeliothermModbusHub:
         self.data["kuehlen_umv_passiv"] = "off" if (kuehlen_umv_passiv == 0) else "on"
 
         expansionsventil = modbusdata.registers[30]
-        self.data["expansionsventil"] = self.checkval(expansionsventil, 0.1)
+        self.data["expansionsventil"] = self.checkval(expansionsventil, 1)
 
         verdichteranforderung = modbusdata.registers[31]
         self.data["verdichteranforderung"] = (
@@ -396,43 +375,37 @@ class HaHeliothermModbusHub:
 
         # -----------------------------------------------------------------------------------
         decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, byteorder=Endian.BIG
+            modbusdata2.registers, wordorder=Endian.BIG
         )
 
         wmz_heizung = decoder.decode_32bit_uint()
-        self.data["wmz_heizung"] = wmz_heizung
+        self.data["wmz_heizung"] = self.checkval(wmz_heizung, 1)
 
         stromz_heizung = decoder.decode_32bit_uint()
-        self.data["stromz_heizung"] = stromz_heizung
+        self.data["stromz_heizung"] = self.checkval(stromz_heizung, 1)
 
         wmz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["wmz_brauchwasser"] = wmz_brauchwasser
+        self.data["wmz_brauchwasser"] = self.checkval(wmz_brauchwasser, 1)
 
         stromz_brauchwasser = decoder.decode_32bit_uint()
-        self.data["stromz_brauchwasser"] = stromz_brauchwasser
+        self.data["stromz_brauchwasser"] = self.checkval(stromz_brauchwasser, 1)
 
         stromz_gesamt = decoder.decode_32bit_uint()
-        self.data["stromz_gesamt"] = stromz_gesamt
+        self.data["stromz_gesamt"] = self.checkval(stromz_gesamt, 1)
 
         stromz_leistung = decoder.decode_32bit_uint()
-        self.data["stromz_leistung"] = stromz_leistung
+        self.data["stromz_leistung"] = self.checkval(stromz_leistung, 1)
 
         wmz_gesamt = decoder.decode_32bit_uint()
-        self.data["wmz_gesamt"] = wmz_gesamt
+        self.data["wmz_gesamt"] = self.checkval(wmz_gesamt, 1)
 
-        wmz_leistung = decoder.decode_32bit_uint() * 0.1
-        self.data["wmz_leistung"] = wmz_leistung
+        wmz_leistung = decoder.decode_32bit_uint()
+        self.data["wmz_leistung"] = self.checkval(wmz_leistung, 1)
 
         # -----------------------------------------------------------------------------------
 
         select_betriebsart = modbusdata3.registers[0]
         self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
-
-        select_mkr1_betriebsart = modbusdata3.registers[7]
-        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
-
-        select_mkr2_betriebsart = modbusdata3.registers[12]
-        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
 
         climate_hkr_raum_soll = modbusdata3.registers[1]
         self.data["climate_hkr_raum_soll"] = {

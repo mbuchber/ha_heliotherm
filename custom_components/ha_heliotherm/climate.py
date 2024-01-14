@@ -7,7 +7,7 @@ from homeassistant.components.climate import (
     HVACMode,
 )
 
-from homeassistant.components.ha_heliotherm import HaHeliothermModbusHub
+from custom_components.ha_heliotherm import HaHeliothermModbusHub
 
 import logging
 from typing import Optional, Dict, Any

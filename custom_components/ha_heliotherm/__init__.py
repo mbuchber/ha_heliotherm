@@ -428,10 +428,10 @@ class HaHeliothermModbusHub:
         select_betriebsart = modbusdata3.registers[0]
         self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
 
-        select_mkr1_betriebsart = modbusdata3.registers[7]
+		select_mkr1_betriebsart = modbusdata3.registers[7]
         self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
 
-        select_mkr2_betriebsart = modbusdata3.registers[12]
+		select_mkr2_betriebsart = modbusdata3.registers[12]
         self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
 
         climate_hkr_raum_soll = modbusdata3.registers[1]

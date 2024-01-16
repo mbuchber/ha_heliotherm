@@ -1,15 +1,19 @@
+import asyncio
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.components.climate import (
     ClimateEntity,
+    ClimateEntityFeature,
     HVACMode,
 )
 
-from . import HaHeliothermModbusHub
+from custom_components.ha_heliotherm import HaHeliothermModbusHub
 
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 
+
+import homeassistant.util.dt as dt_util
 
 from .const import (
     ATTR_MANUFACTURER,
@@ -60,11 +64,12 @@ class HaHeliothermModbusClimate(ClimateEntity):
         self._attr_device_info = device_info
         self._hub = hub
         self.entity_description: HaHeliothermClimateEntityDescription = description
-        self._attr_hvac_modes = None
+        self._attr_hvac_modes = [HVACMode.AUTO]
         self._attr_hvac_mode = HVACMode.AUTO
         self._attr_temperature_unit = description.temperature_unit
         self._attr_min_temp = description.min_value
         self._attr_max_temp = description.max_value
+        self._attr_target_temperature = description.target_temperature
         self._attr_target_temperature_low = description.min_value
         self._attr_target_temperature_high = description.max_value
         self._attr_target_temperature_step = description.step

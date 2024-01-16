@@ -1,341 +1,452 @@
-"""Constants for the HaHeliotherm integration."""
+"""The HaHeliotherm integration."""
+from __future__ import annotations
 
-from dataclasses import dataclass
-from homeassistant.components.climate import *
+import asyncio
+from datetime import timedelta
+import logging
+import threading
+from typing import Optional
 
-from homeassistant.components.sensor import (
-    SensorEntityDescription,
-    STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
+from pymodbus.client import ModbusTcpClient
+from pymodbus.constants import Endian
+from pymodbus.exceptions import ConnectionException
+from pymodbus.payload import BinaryPayloadDecoder
+import voluptuous as vol
+
+from homeassistant.helpers.entity import Entity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+    Platform,
 )
-
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-    BinarySensorEntityDescription,
-)
-
-from homeassistant.components.number import (
-    NumberEntity,
-    NumberEntityDescription,
-    NumberDeviceClass,
-)
-
-from homeassistant.const import *
-
-DOMAIN = "ha_heliotherm"
-DEFAULT_NAME = "Heliotherm Heatpump"
-DEFAULT_SCAN_INTERVAL = 15
-DEFAULT_PORT = 502
-CONF_HALEIOTHERM_HUB = "haheliotherm_hub"
-ATTR_MANUFACTURER = "Heliotherm"
+from homeassistant.core import HomeAssistant, callback
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.event import async_track_time_interval
 
 
-@dataclass
-class HaHeliothermNumberEntityDescription(NumberEntityDescription):
-    """A class that describes HaHeliotherm Modbus sensor entities."""
+from .const import DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN
 
-    mode: str = "slider"
-    initial: float = None
-    editable: bool = True
+_LOGGER = logging.getLogger(__name__)
 
-
-@dataclass
-class HaHeliothermSensorEntityDescription(SensorEntityDescription):
-    """A class that describes HaHeliotherm Modbus sensor entities."""
+# PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
+PLATFORMS = [Platform.SELECT, Platform.SENSOR, Platform.BINARY_SENSOR, Platform.CLIMATE]
 
 
-@dataclass
-class HaHeliothermBinarySensorEntityDescription(BinarySensorEntityDescription):
-    """A class that describes HaHeliotherm Modbus binarysensor entities."""
+async def async_setup(hass, config):
+    """Set up the HaHeliotherm modbus component."""
+    hass.data[DOMAIN] = {}
+    return True
 
 
-@dataclass
-class HaHeliothermSelectEntityDescription(SensorEntityDescription):
-    """A class that describes HaHeliotherm Modbus binarysensor entities."""
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up a HaHeliotherm modbus."""
+    host = entry.data[CONF_HOST]
+    name = entry.data[CONF_NAME]
+    port = entry.data[CONF_PORT]
+    scan_interval = DEFAULT_SCAN_INTERVAL
 
-    select_options: list[str] = None
-    default_select_option: str = None
-    setter_function = None
+    _LOGGER.debug("Setup %s.%s", DOMAIN, name)
 
+    hub = HaHeliothermModbusHub(hass, name, host, port, scan_interval)
+    # """Register the hub."""
+    hass.data[DOMAIN][name] = {"hub": hub}
 
-@dataclass
-class HaHeliothermClimateEntityDescription(ClimateEntityDescription):
-    """A class that describes HaHeliotherm Modbus binarysensor entities."""
+    for component in PLATFORMS:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, component)
+        )
 
-    min_value: float = None
-    max_value: float = None
-    target_temperature: float = None
-    step: float = None
-    hvac_modes: list[str] = None
-    hvac_mode: HVACMode = HVACMode.AUTO
-    temperature_unit: str = "°C"
-    supported_features: ClimateEntityFeature = ClimateEntityFeature.TARGET_TEMPERATURE
+    return True
 
 
-CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
-    "climate_hkr_raum_soll": HaHeliothermClimateEntityDescription(
-        name="Raum Solltemperatur",
-        key="climate_hkr_raum_soll",
-        min_value=10,
-        max_value=25,
-        step=0.5,
-        temperature_unit="°C",
-        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE,
-        hvac_mode=HVACMode.AUTO,
-        hvac_modes=[HVACMode.AUTO],
-    ),
-    "climate_ww_bereitung": HaHeliothermClimateEntityDescription(
-        name="Warmwasserbereitung",
-        key="climate_ww_bereitung",
-        min_value=5,
-        max_value=65,
-        step=0.5,
-        temperature_unit="°C",
-        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE_RANGE,
-    ),
-}
+async def async_unload_entry(hass, entry):
+    """Unload HaHeliotherm mobus entry."""
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(entry, component)
+                for component in PLATFORMS
+            ]
+        )
+    )
+    if not unload_ok:
+        return False
 
-NUMBER_TYPES: dict[str, list[HaHeliothermNumberEntityDescription]] = {}
-
-SELECT_TYPES: dict[str, list[HaHeliothermSelectEntityDescription]] = {
-    "select_betriebsart": HaHeliothermSelectEntityDescription(
-        name="Betriebsart",
-        key="select_betriebsart",
-        select_options=[
-            "Aus",
-            "Auto",
-            "Kühlen",
-            "Sommer",
-            "Dauerbetrieb",
-            "Absenken",
-            "Urlaub",
-            "Party",
-        ],
-        default_select_option="Auto",
-    ),
-}
-
-SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
-    "temp_aussen": HaHeliothermSensorEntityDescription(
-        name="Temp. Aussen",
-        key="temp_aussen",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_brauchwasser": HaHeliothermSensorEntityDescription(
-        name="Temp. Brauchwasser",
-        key="temp_brauchwasser",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_vorlauf": HaHeliothermSensorEntityDescription(
-        name="Temp. Vorlauf",
-        key="temp_vorlauf",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_ruecklauf": HaHeliothermSensorEntityDescription(
-        name="Temp. Rücklauf",
-        key="temp_ruecklauf",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_pufferspeicher": HaHeliothermSensorEntityDescription(
-        name="Temp. Pufferspeicher",
-        key="temp_pufferspeicher",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_eq_eintritt": HaHeliothermSensorEntityDescription(
-        name="Temp. EQ Eintritt",
-        key="temp_eq_eintritt",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_eq_austritt": HaHeliothermSensorEntityDescription(
-        name="Temp. EQ Austritt",
-        key="temp_eq_austritt",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_sauggas": HaHeliothermSensorEntityDescription(
-        name="Temp. Sauggas",
-        key="temp_sauggas",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_verdampfung": HaHeliothermSensorEntityDescription(
-        name="Temp. Verdampfung",
-        key="temp_verdampfung",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_kodensation": HaHeliothermSensorEntityDescription(
-        name="Temp. Kondensation",
-        key="temp_kodensation",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_heissgas": HaHeliothermSensorEntityDescription(
-        name="Temp. Heissgas",
-        key="temp_heissgas",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "bar_niederdruck": HaHeliothermSensorEntityDescription(
-        name="Niederdruck (bar)",
-        key="bar_niederdruck",
-        native_unit_of_measurement=PRESSURE_BAR,
-        device_class=DEVICE_CLASS_PRESSURE,
-    ),
-    "bar_hochdruck": HaHeliothermSensorEntityDescription(
-        name="Hochdruck (bar)",
-        key="bar_hochdruck",
-        native_unit_of_measurement=PRESSURE_BAR,
-        device_class=DEVICE_CLASS_PRESSURE,
-    ),
-    "vierwegeventil_luft": HaHeliothermSensorEntityDescription(
-        name="Vierwegeventil Luft",
-        key="vierwegeventil_luft",
-    ),
-    "wmz_durchfluss": HaHeliothermSensorEntityDescription(
-        name="WMZ_Durchfluss",
-        key="wmz_durchfluss",
-        native_unit_of_measurement="l/h",
-    ),
-    "n_soll_verdichter": HaHeliothermSensorEntityDescription(
-        name="n-Soll Verdichter",
-        key="n_soll_verdichter",
-        native_unit_of_measurement="‰",
-        device_class=DEVICE_CLASS_PRESSURE,
-    ),
-    "cop": HaHeliothermSensorEntityDescription(
-        name="COP",
-        key="cop",
-    ),
-    "temp_frischwasser": HaHeliothermSensorEntityDescription(
-        name="Temp. Frischwasser",
-        key="temp_frischwasser",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "temp_aussen_verzoegert": HaHeliothermSensorEntityDescription(
-        name="Temp. Aussen verzögert",
-        key="temp_aussen_verzoegert",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "hkr_solltemperatur": HaHeliothermSensorEntityDescription(
-        name="HKR Soll Temperatur",
-        key="hkr_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "mkr1_solltemperatur": HaHeliothermSensorEntityDescription(
-        name="MKR1 Soll Temperatur",
-        key="mkr1_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "mkr2_solltemperatur": HaHeliothermSensorEntityDescription(
-        name="MKR2 Soll Temperatur",
-        key="mkr2_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
-        device_class=DEVICE_CLASS_TEMPERATURE,
-    ),
-    "expansionsventil": HaHeliothermSensorEntityDescription(
-        name="Expansionsventil",
-        key="expansionsventil",
-        native_unit_of_measurement="‰",
-        device_class=DEVICE_CLASS_PRESSURE,
-    ),
-    "verdichteranforderung": HaHeliothermSensorEntityDescription(
-        name="Anforderung",
-        key="verdichteranforderung",
-    ),
-    "wmz_heizung": HaHeliothermSensorEntityDescription(
-        name="WMZ Heizung",
-        key="wmz_heizung",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "stromz_heizung": HaHeliothermSensorEntityDescription(
-        name="Stromzähler Heizung",
-        key="stromz_heizung",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "wmz_brauchwasser": HaHeliothermSensorEntityDescription(
-        name="WMZ Brauchwasser",
-        key="wmz_brauchwasser",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "stromz_brauchwasser": HaHeliothermSensorEntityDescription(
-        name="Stromzähler Brauchwasser",
-        key="stromz_brauchwasser",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "stromz_gesamt": HaHeliothermSensorEntityDescription(
-        name="Stromzähler Gesamt",
-        key="stromz_gesamt",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "stromz_leistung": HaHeliothermSensorEntityDescription(
-        name="Stromzähler Leistung",
-        key="stromz_leistung",
-        native_unit_of_measurement="W",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "wmz_gesamt": HaHeliothermSensorEntityDescription(
-        name="WMZ Gesamt",
-        key="wmz_gesamt",
-        native_unit_of_measurement="kWh",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-    "wmz_leistung": HaHeliothermSensorEntityDescription(
-        name="WMZ Leistung",
-        key="wmz_leistung",
-        native_unit_of_measurement="kW",
-        device_class=DEVICE_CLASS_ENERGY,
-    ),
-}
+    hass.data[DOMAIN].pop(entry.data["name"])
+    return True
 
 
-BINARYSENSOR_TYPES: dict[str, list[HaHeliothermBinarySensorEntityDescription]] = {
-    "on_off_heizkreispumpe": HaHeliothermBinarySensorEntityDescription(
-        name="Heizkreispumpe",
-        key="on_off_heizkreispumpe",
-    ),
-    "on_off_pufferladepumpe": HaHeliothermBinarySensorEntityDescription(
-        name="Pufferladepumpe",
-        key="on_off_pufferladepumpe",
-    ),
-    "on_off_verdichter": HaHeliothermBinarySensorEntityDescription(
-        name="Verdichter",
-        key="on_off_verdichter",
-    ),
-    "on_off_stoerung": HaHeliothermBinarySensorEntityDescription(
-        name="Stoerung",
-        key="on_off_stoerung",
-    ),
-    "on_off_evu_sperre": HaHeliothermBinarySensorEntityDescription(
-        name="EVU Sperre",
-        key="on_off_evu_sperre",
-    ),
-    "on_off_eq_ventilator": HaHeliothermBinarySensorEntityDescription(
-        name="EQ Ventilator",
-        key="on_off_eq_ventilator",
-    ),
-    "ww_vorrang": HaHeliothermBinarySensorEntityDescription(
-        name="WW Vorrang",
-        key="ww_vorrang",
-    ),
-    "kuehlen_umv_passiv": HaHeliothermBinarySensorEntityDescription(
-        name="Kühlen UMV passiv",
-        key="kuehlen_umv_passiv",
-    ),
-}
+class HaHeliothermModbusHub:
+    """Thread safe wrapper class for pymodbus."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        name,
+        host,
+        port,
+        scan_interval,
+    ):
+        """Initialize the Modbus hub."""
+        self._hass = hass
+        self._client = ModbusTcpClient(
+            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
+        )
+        self._lock = threading.Lock()
+        self._name = name
+        self._scan_interval = timedelta(seconds=scan_interval)
+        self._unsub_interval_method = None
+        self._sensors = []
+        self.data = {}
+
+    @callback
+    def async_add_haheliotherm_modbus_sensor(self, update_callback):
+        """Listen for data updates."""
+        # This is the first sensor, set up interval.
+        if not self._sensors:
+            self.connect()
+            self._unsub_interval_method = async_track_time_interval(
+                self._hass, self.async_refresh_modbus_data, self._scan_interval
+            )
+
+        self._sensors.append(update_callback)
+
+    @callback
+    def async_remove_haheliotherm_modbus_sensor(self, update_callback):
+        """Remove data update."""
+        self._sensors.remove(update_callback)
+
+        if not self._sensors:
+            # """stop the interval timer upon removal of last sensor"""
+            self._unsub_interval_method()
+            self._unsub_interval_method = None
+            self.close()
+
+    async def async_refresh_modbus_data(self, _now: Optional[int] = None) -> None:
+        """Time to update."""
+        if not self._sensors:
+            return
+
+        update_result = self.read_modbus_registers()
+
+        if update_result:
+            for update_callback in self._sensors:
+                update_callback()
+
+    @property
+    def name(self):
+        """Return the name of this hub."""
+        return self._name
+
+    def close(self):
+        """Disconnect client."""
+        with self._lock:
+            self._client.close()
+
+    def connect(self):
+        """Connect client."""
+        with self._lock:
+            self._client.connect()
+
+    def read_input_registers(self, slave, address, count):
+        """Read holding registers."""
+        with self._lock:
+            return self._client.read_input_registers(address, count, slave)
+
+    def getsignednumber(self, number, bitlength=16):
+        mask = (2**bitlength) - 1
+        if number & (1 << (bitlength - 1)):
+            return number | ~mask
+        else:
+            return number & mask
+
+    def checkval(self, value, scale, bitlength=16):
+        """Check value for missing item"""
+        if value is None:
+            return None
+        value = self.getsignednumber(value, bitlength)
+        value = round(value * scale, 1)
+        if value == -50.0:
+            value = None
+        return value
+
+    def getbetriebsart(self, bietriebsart_nr: int):
+        return (
+            "Aus"
+            if bietriebsart_nr == 0
+            else "Auto"
+            if bietriebsart_nr == 1
+            else "Kühlen"
+            if bietriebsart_nr == 2
+            else "Sommer"
+            if bietriebsart_nr == 3
+            else "Dauerbetrieb"
+            if bietriebsart_nr == 4
+            else "Absenken"
+            if bietriebsart_nr == 5
+            else "Urlaub"
+            if bietriebsart_nr == 6
+            else "Party"
+            if bietriebsart_nr == 7
+            else None
+        )
+
+    def getbetriebsartnr(self, bietriebsart_str: str):
+        return (
+            0
+            if bietriebsart_str == "Aus"
+            else 1
+            if bietriebsart_str == "Auto"
+            else 2
+            if bietriebsart_str == "Kühlen"
+            else 3
+            if bietriebsart_str == "Sommer"
+            else 4
+            if bietriebsart_str == "Dauerbetrieb"
+            else 5
+            if bietriebsart_str == "Absenken"
+            else 6
+            if bietriebsart_str == "Urlaub"
+            else 7
+            if bietriebsart_str == "Party"
+            else None
+        )
+
+    async def setter_function_callback(self, entity: Entity, option):
+        if entity.entity_description.key == "select_betriebsart":
+            await self.set_betriebsart(option)
+            return
+        if entity.entity_description.key == "select_mkr1_betriebsart":
+            await self.set_mkr1_betriebsart(option)
+            return
+        if entity.entity_description.key == "select_mkr2_betriebsart":
+            await self.set_mkr2_betriebsart(option)
+            return
+        if entity.entity_description.key == "climate_hkr_raum_soll":
+            temp = float(option["temperature"])
+            await self.set_raumtemperatur(temp)
+
+        if entity.entity_description.key == "climate_ww_bereitung":
+            tmin = float(option["target_temp_low"])
+            tmax = float(option["target_temp_high"])
+            await self.set_ww_bereitung(tmin, tmax)
+
+    async def set_betriebsart(self, betriebsart: str):
+        betriebsart_nr = self.getbetriebsartnr(betriebsart)
+        if betriebsart_nr is None:
+            return
+        self._client.write_register(address=100, value=betriebsart_nr, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_mkr1_betriebsart(self, betriebsart: str):
+        betriebsart_nr = self.getbetriebsartnr(betriebsart)
+        if betriebsart_nr is None:
+            return
+        self._client.write_register(address=107, value=betriebsart_nr, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_mkr2_betriebsart(self, betriebsart: str):
+        betriebsart_nr = self.getbetriebsartnr(betriebsart)
+        if betriebsart_nr is None:
+            return
+        self._client.write_register(address=112, value=betriebsart_nr, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_raumtemperatur(self, temperature: float):
+        if temperature is None:
+            return
+        temp_int = int(temperature * 10)
+        self._client.write_register(address=101, value=temp_int, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_ww_bereitung(self, temp_min: float, temp_max: float):
+        if temp_min is None or temp_max is None:
+            return
+        temp_max_int = int(temp_max * 10)
+        temp_min_int = int(temp_min * 10)
+        self._client.write_register(address=105, value=temp_max_int, slave=1)
+        self._client.write_register(address=106, value=temp_min_int, slave=1)
+        await self.async_refresh_modbus_data()
+
+    def read_modbus_registers(self):
+        """Read from modbus registers"""
+        modbusdata = self.read_input_registers(slave=1, address=10, count=32)
+        modbusdata2 = self.read_input_registers(slave=1, address=60, count=16)
+        modbusdata3 = self._client.read_holding_registers(
+            address=100, count=27, slave=1
+        )
+
+        # if modbusdata.isError():
+        #    return False
+
+        temp_aussen = modbusdata.registers[0]
+        self.data["temp_aussen"] = self.checkval(temp_aussen, 0.1)
+
+        temp_brauchwasser = modbusdata.registers[1]
+        self.data["temp_brauchwasser"] = self.checkval(temp_brauchwasser, 0.1)
+
+        temp_vorlauf = modbusdata.registers[2]
+        self.data["temp_vorlauf"] = self.checkval(temp_vorlauf, 0.1)
+
+        temp_ruecklauf = modbusdata.registers[3]
+        self.data["temp_ruecklauf"] = self.checkval(temp_ruecklauf, 0.1)
+
+        temp_pufferspeicher = modbusdata.registers[4]
+        self.data["temp_pufferspeicher"] = self.checkval(temp_pufferspeicher, 0.1)
+
+        temp_eq_eintritt = modbusdata.registers[5]
+        self.data["temp_eq_eintritt"] = self.checkval(temp_eq_eintritt, 0.1)
+
+        temp_eq_austritt = modbusdata.registers[6]
+        self.data["temp_eq_austritt"] = self.checkval(temp_eq_austritt, 0.1)
+
+        temp_sauggas = modbusdata.registers[7]
+        self.data["temp_sauggas"] = self.checkval(temp_sauggas, 0.1)
+
+        temp_verdampfung = modbusdata.registers[8]
+        self.data["temp_verdampfung"] = self.checkval(temp_verdampfung, 0.1)
+
+        temp_kodensation = modbusdata.registers[9]
+        self.data["temp_kodensation"] = self.checkval(temp_kodensation, 0.1)
+
+        temp_heissgas = modbusdata.registers[10]
+        self.data["temp_heissgas"] = self.checkval(temp_heissgas, 0.1)
+
+        bar_niederdruck = modbusdata.registers[11]
+        self.data["bar_niederdruck"] = self.checkval(bar_niederdruck, 0.1)
+
+        bar_hochdruck = modbusdata.registers[12]
+        self.data["bar_hochdruck"] = self.checkval(bar_hochdruck, 0.1)
+
+        on_off_heizkreispumpe = modbusdata.registers[13]
+        self.data["on_off_heizkreispumpe"] = (
+            "off" if (on_off_heizkreispumpe == 0) else "on"
+        )
+
+        on_off_pufferladepumpe = modbusdata.registers[14]
+        self.data["on_off_pufferladepumpe"] = (
+            "off" if (on_off_pufferladepumpe == 0) else "on"
+        )
+
+        on_off_verdichter = modbusdata.registers[15]
+        self.data["on_off_verdichter"] = "off" if (on_off_verdichter == 0) else "on"
+
+        on_off_stoerung = modbusdata.registers[16]
+        self.data["on_off_stoerung"] = "off" if (on_off_stoerung == 0) else "on"
+
+        vierwegeventil_luft = modbusdata.registers[17]
+        self.data["vierwegeventil_luft"] = (
+            "Abtaubetrieb" if (vierwegeventil_luft != 0) else "Aus"
+        )
+
+        wmz_durchfluss = modbusdata.registers[18]
+        self.data["wmz_durchfluss"] = self.checkval(wmz_durchfluss, 0.1)
+
+        n_soll_verdichter = modbusdata.registers[19]
+        self.data["n_soll_verdichter"] = self.checkval(n_soll_verdichter, 1)
+
+        cop = modbusdata.registers[20]
+        self.data["cop"] = self.checkval(cop, 0.1)
+
+        temp_frischwasser = modbusdata.registers[21]
+        self.data["temp_frischwasser"] = self.checkval(temp_frischwasser, 0.1)
+
+        on_off_evu_sperre = modbusdata.registers[22]
+        self.data["on_off_evu_sperre"] = "on" if (on_off_evu_sperre == 0) else "off"
+
+        temp_aussen_verzoegert = modbusdata.registers[23]
+        self.data["temp_aussen_verzoegert"] = self.checkval(temp_aussen_verzoegert, 0.1)
+
+        hkr_solltemperatur = modbusdata.registers[24]
+        self.data["hkr_solltemperatur"] = self.checkval(hkr_solltemperatur, 0.1)
+
+        mkr1_solltemperatur = modbusdata.registers[25]
+        self.data["mkr1_solltemperatur"] = self.checkval(mkr1_solltemperatur, 0.1)
+
+        mkr2_solltemperatur = modbusdata.registers[26]
+        self.data["mkr2_solltemperatur"] = self.checkval(mkr2_solltemperatur, 0.1)
+
+        on_off_eq_ventilator = modbusdata.registers[27]
+        self.data["on_off_eq_ventilator"] = (
+            "off" if (on_off_eq_ventilator == 0) else "on"
+        )
+
+        ww_vorrang = modbusdata.registers[28]
+        self.data["ww_vorrang"] = "off" if (ww_vorrang == 0) else "on"
+
+        kuehlen_umv_passiv = modbusdata.registers[29]
+        self.data["kuehlen_umv_passiv"] = "off" if (kuehlen_umv_passiv == 0) else "on"
+
+        expansionsventil = modbusdata.registers[30]
+        self.data["expansionsventil"] = self.checkval(expansionsventil, 0.1)
+
+        verdichteranforderung = modbusdata.registers[31]
+        self.data["verdichteranforderung"] = (
+            "Kühlen"
+            if (verdichteranforderung == 10)
+            else "Heizen"
+            if (verdichteranforderung == 20)
+            else "Warmwasser"
+            if (verdichteranforderung == 30)
+            else "Keine Anforderung"
+        )
+
+        # -----------------------------------------------------------------------------------
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            modbusdata2.registers, byteorder=Endian.BIG
+        )
+
+        wmz_heizung = decoder.decode_32bit_uint()
+        self.data["wmz_heizung"] = wmz_heizung
+
+        stromz_heizung = decoder.decode_32bit_uint()
+        self.data["stromz_heizung"] = stromz_heizung
+
+        wmz_brauchwasser = decoder.decode_32bit_uint()
+        self.data["wmz_brauchwasser"] = wmz_brauchwasser
+
+        stromz_brauchwasser = decoder.decode_32bit_uint()
+        self.data["stromz_brauchwasser"] = stromz_brauchwasser
+
+        stromz_gesamt = decoder.decode_32bit_uint()
+        self.data["stromz_gesamt"] = stromz_gesamt
+
+        stromz_leistung = decoder.decode_32bit_uint()
+        self.data["stromz_leistung"] = stromz_leistung
+
+        wmz_gesamt = decoder.decode_32bit_uint()
+        self.data["wmz_gesamt"] = wmz_gesamt
+
+        wmz_leistung = decoder.decode_32bit_uint() * 0.1
+        self.data["wmz_leistung"] = wmz_leistung
+
+        # -----------------------------------------------------------------------------------
+
+        select_betriebsart = modbusdata3.registers[0]
+        self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
+
+		select_mkr1_betriebsart = modbusdata3.registers[7]
+        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
+
+		select_mkr2_betriebsart = modbusdata3.registers[12]
+        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
+
+        climate_hkr_raum_soll = modbusdata3.registers[1]
+        self.data["climate_hkr_raum_soll"] = {
+            "temperature": self.checkval(climate_hkr_raum_soll, 0.1)
+        }
+
+        climate_ww_bereitung_max = modbusdata3.registers[5]
+        climate_ww_bereitung_min = modbusdata3.registers[6]
+        self.data["climate_ww_bereitung"] = {
+            "target_temp_low": self.checkval(climate_ww_bereitung_min, 0.1),
+            "target_temp_high": self.checkval(climate_ww_bereitung_max, 0.1),
+            "temperature": self.checkval(temp_brauchwasser, 0.1),
+        }
+
+        # externe_anforderung = modbusdata3.registers[20]
+
+        return True

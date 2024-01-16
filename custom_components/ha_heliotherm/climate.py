@@ -68,8 +68,7 @@ class HaHeliothermModbusClimate(ClimateEntity):
         self._attr_hvac_mode = HVACMode.AUTO
         self._attr_temperature_unit = description.temperature_unit
         self._attr_min_temp = description.min_value
-        self._attr_max_temp = description.max_value
-        self._attr_target_temperature = description.target_temperature
+        self._attr_max_temp = description.max_value        
         self._attr_target_temperature_low = description.min_value
         self._attr_target_temperature_high = description.max_value
         self._attr_target_temperature_step = description.step

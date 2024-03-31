@@ -6,11 +6,7 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
-from homeassistant.components.sensor import (
-    SensorEntityDescription,
-    STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
-)
+from homeassistant.components.sensor import *
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -288,48 +284,56 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
         key="wmz_heizung",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "stromz_heizung": HaHeliothermSensorEntityDescription(
         name="Stromzähler Heizung",
         key="stromz_heizung",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "wmz_brauchwasser": HaHeliothermSensorEntityDescription(
         name="WMZ Brauchwasser",
         key="wmz_brauchwasser",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "stromz_brauchwasser": HaHeliothermSensorEntityDescription(
         name="Stromzähler Brauchwasser",
         key="stromz_brauchwasser",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "stromz_gesamt": HaHeliothermSensorEntityDescription(
         name="Stromzähler Gesamt",
         key="stromz_gesamt",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "stromz_leistung": HaHeliothermSensorEntityDescription(
         name="Stromzähler Leistung",
         key="stromz_leistung",
         native_unit_of_measurement="W",
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     "wmz_gesamt": HaHeliothermSensorEntityDescription(
         name="WMZ Gesamt",
         key="wmz_gesamt",
         native_unit_of_measurement="kWh",
         device_class=DEVICE_CLASS_ENERGY,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     "wmz_leistung": HaHeliothermSensorEntityDescription(
         name="WMZ Leistung",
         key="wmz_leistung",
         native_unit_of_measurement="kW",
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
 }
 

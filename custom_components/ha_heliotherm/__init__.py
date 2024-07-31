@@ -228,6 +228,10 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
+            
+        if entity.entity_description.key == "climate_rlt_kuehlen":
+            temp = float(option["temperature"])
+            await self.set_rltkuehlen(temp)
 
         if entity.entity_description.key == "climate_ww_bereitung":
             tmin = float(option["target_temp_low"])
@@ -260,6 +264,13 @@ class HaHeliothermModbusHub:
             return
         temp_int = int(temperature * 10)
         self._client.write_register(address=101, value=temp_int, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_rltkuehlen(self, temperature: float):
+        if temperature is None:
+            return
+        temp_int = int(temperature * 10)
+        self._client.write_register(address=103, value=temp_int, slave=1)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):

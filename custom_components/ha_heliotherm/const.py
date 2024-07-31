@@ -84,7 +84,7 @@ CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
         key="climate_rlt_kuehlen",
         min_value=15,
         max_value=25,
-        step=0.5,
+        step=1,
         temperature_unit="°C",
     ),
     "climate_ww_bereitung": HaHeliothermClimateEntityDescription(

@@ -182,7 +182,7 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "temp_eq_eintritt": HaHeliothermSensorEntityDescription(
         name="Temp. EQ Eintritt",
         key="temp_eq_eintritt",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
     "temp_eq_austritt": HaHeliothermSensorEntityDescription(
@@ -262,7 +262,7 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "hkr_solltemperatur": HaHeliothermSensorEntityDescription(
         name="HKR Soll Temperatur",
         key="hkr_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
     "mkr1_solltemperatur": HaHeliothermSensorEntityDescription(

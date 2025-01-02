@@ -152,31 +152,31 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "temp_aussen": HaHeliothermSensorEntityDescription(
         name="Temp. Aussen",
         key="temp_aussen",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_brauchwasser": HaHeliothermSensorEntityDescription(
         name="Temp. Brauchwasser",
         key="temp_brauchwasser",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_vorlauf": HaHeliothermSensorEntityDescription(
         name="Temp. Vorlauf",
         key="temp_vorlauf",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_ruecklauf": HaHeliothermSensorEntityDescription(
         name="Temp. Rücklauf",
         key="temp_ruecklauf",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_pufferspeicher": HaHeliothermSensorEntityDescription(
         name="Temp. Pufferspeicher",
         key="temp_pufferspeicher",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_eq_eintritt": HaHeliothermSensorEntityDescription(
@@ -188,31 +188,31 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "temp_eq_austritt": HaHeliothermSensorEntityDescription(
         name="Temp. EQ Austritt",
         key="temp_eq_austritt",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_sauggas": HaHeliothermSensorEntityDescription(
         name="Temp. Sauggas",
         key="temp_sauggas",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_verdampfung": HaHeliothermSensorEntityDescription(
         name="Temp. Verdampfung",
         key="temp_verdampfung",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_kodensation": HaHeliothermSensorEntityDescription(
         name="Temp. Kondensation",
         key="temp_kodensation",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_heissgas": HaHeliothermSensorEntityDescription(
         name="Temp. Heissgas",
         key="temp_heissgas",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "bar_niederdruck": HaHeliothermSensorEntityDescription(
@@ -250,13 +250,13 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "temp_frischwasser": HaHeliothermSensorEntityDescription(
         name="Temp. Frischwasser",
         key="temp_frischwasser",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "temp_aussen_verzoegert": HaHeliothermSensorEntityDescription(
         name="Temp. Aussen verzögert",
         key="temp_aussen_verzoegert",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "hkr_solltemperatur": HaHeliothermSensorEntityDescription(
@@ -268,13 +268,13 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
     "mkr1_solltemperatur": HaHeliothermSensorEntityDescription(
         name="MKR1 Soll Temperatur",
         key="mkr1_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "mkr2_solltemperatur": HaHeliothermSensorEntityDescription(
         name="MKR2 Soll Temperatur",
         key="mkr2_solltemperatur",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     "expansionsventil": HaHeliothermSensorEntityDescription(

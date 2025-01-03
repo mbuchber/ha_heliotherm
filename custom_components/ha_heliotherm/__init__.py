@@ -233,11 +233,15 @@ class HaHeliothermModbusHub:
             temp = float(option["temperature"])
             await self.set_rltkuehlen(temp)
 
+        if entity.entity_description.key == "climate_rl_soll":
+            temp = float(option["temperature"])
+            await self.set_rl_soll(temp)
+            
         if entity.entity_description.key == "climate_ww_bereitung":
             tmin = float(option["target_temp_low"])
             tmax = float(option["target_temp_high"])
             await self.set_ww_bereitung(tmin, tmax)
-
+            
     async def set_betriebsart(self, betriebsart: str):
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
@@ -273,6 +277,15 @@ class HaHeliothermModbusHub:
         self._client.write_register(address=104, value=temp_int, slave=1)
         await self.async_refresh_modbus_data()
 
+    async def set_rl_soll(self, temperature: float):
+        if temperature is None:
+            return
+        temp_int = int(temperature * 10)
+        temp_activate_rl_soll = 1
+        self._client.write_register(address=102, value=temp_int, slave=1)
+        self._client.write_register(address=103, value=temp_activate_rl_soll, slave=1)
+        await self.async_refresh_modbus_data()
+    
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
         if temp_min is None or temp_max is None:
             return
@@ -396,13 +409,15 @@ class HaHeliothermModbusHub:
 
         verdichteranforderung = modbusdata.registers[31]
         self.data["verdichteranforderung"] = (
-            "Kühlen"
+            "unbekannt"
             if (verdichteranforderung == 10)
             else "Heizen"
             if (verdichteranforderung == 20)
             else "Warmwasser"
             if (verdichteranforderung == 30)
-            else "Keine Anforderung"
+            else "Externe Anforderung"
+            if (verdichteranforderung == 40)
+            else "Keine"
         )
 
         # -----------------------------------------------------------------------------------
@@ -453,6 +468,11 @@ class HaHeliothermModbusHub:
         climate_rlt_kuehlen = modbusdata3.registers[4]
         self.data["climate_rlt_kuehlen"] = {
             "temperature": self.checkval(climate_rlt_kuehlen, 0.1)
+        }
+
+        climate_rl_soll = modbusdata3.registers[2]
+        self.data["climate_rl_soll"] = {
+            "temperature": self.checkval(climate_rl_soll, 0.1)
         }
         
         climate_ww_bereitung_max = modbusdata3.registers[5]

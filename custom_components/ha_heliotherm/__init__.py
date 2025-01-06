@@ -409,7 +409,7 @@ class HaHeliothermModbusHub:
 
         verdichteranforderung = modbusdata.registers[31]
         self.data["verdichteranforderung"] = (
-            "unbekannt"
+            "Kühlen"
             if (verdichteranforderung == 10)
             else "Heizen"
             if (verdichteranforderung == 20)

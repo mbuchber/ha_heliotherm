@@ -93,7 +93,7 @@ class HaHeliothermModbusHub:
         """Initialize the Modbus hub."""
         self._hass = hass
         self._client = ModbusTcpClient(
-            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
+            host=host, port=port, timeout=3, retries=3
         )
         self._lock = threading.Lock()
         self._name = name

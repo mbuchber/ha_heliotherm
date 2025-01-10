@@ -8,7 +8,7 @@
   "homekit": {},
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/mbuchber/ha_heliotherm/issues",
-  "requirements": ["pymodbus==3.6.6"],
+  "requirements": ["pymodbus==3.7.4"],
   "ssdp": [],
   "version": "v1.0.33",
   "zeroconf": []  

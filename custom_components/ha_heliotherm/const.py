@@ -240,7 +240,6 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
         name="n-Soll Verdichter",
         key="n_soll_verdichter",
         native_unit_of_measurement="‰",
-        device_class=SensorDeviceClass.PRESSURE,
     ),
     "cop": HaHeliothermSensorEntityDescription(
         name="COP",
@@ -281,7 +280,6 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
         name="Expansionsventil",
         key="expansionsventil",
         native_unit_of_measurement="‰",
-        device_class=SensorDeviceClass.PRESSURE,
     ),
     "verdichteranforderung": HaHeliothermSensorEntityDescription(
         name="Anforderung",

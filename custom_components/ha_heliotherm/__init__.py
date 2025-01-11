@@ -93,7 +93,7 @@ class HaHeliothermModbusHub:
         """Initialize the Modbus hub."""
         self._hass = hass
         self._client = ModbusTcpClient(
-            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
+            host=host, port=port, timeout=3, retries=3
         )
         self._lock = threading.Lock()
         self._name = name
@@ -228,6 +228,10 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
+            
+        if entity.entity_description.key == "climate_rlt_kuehlen":
+            temp = float(option["temperature"])
+            await self.set_rltkuehlen(temp)
 
         if entity.entity_description.key == "climate_ww_bereitung":
             tmin = float(option["target_temp_low"])
@@ -260,6 +264,13 @@ class HaHeliothermModbusHub:
             return
         temp_int = int(temperature * 10)
         self._client.write_register(address=101, value=temp_int, slave=1)
+        await self.async_refresh_modbus_data()
+
+    async def set_rltkuehlen(self, temperature: float):
+        if temperature is None:
+            return
+        temp_int = int(temperature * 10)
+        self._client.write_register(address=104, value=temp_int, slave=1)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
@@ -439,6 +450,11 @@ class HaHeliothermModbusHub:
             "temperature": self.checkval(climate_hkr_raum_soll, 0.1)
         }
 
+        climate_rlt_kuehlen = modbusdata3.registers[4]
+        self.data["climate_rlt_kuehlen"] = {
+            "temperature": self.checkval(climate_rlt_kuehlen, 0.1)
+        }
+        
         climate_ww_bereitung_max = modbusdata3.registers[5]
         climate_ww_bereitung_min = modbusdata3.registers[6]
         self.data["climate_ww_bereitung"] = {

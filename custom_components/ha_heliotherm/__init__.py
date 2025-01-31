@@ -284,10 +284,10 @@ class HaHeliothermModbusHub:
 
     def read_modbus_registers(self):
         """Read from modbus registers"""
-        modbusdata = self.read_input_registers(slave=1, address=10, count=32)
-        modbusdata2 = self.read_input_registers(slave=1, address=60, count=16)
+        modbusdata = self.read_input_registers(10,32,1)
+        modbusdata2 = self.read_input_registers(60,16,1)
         modbusdata3 = self._client.read_holding_registers(
-            address=100, count=27, slave=1
+            100, 27, 1
         )
 
         # if modbusdata.isError():

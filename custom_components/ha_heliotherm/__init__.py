@@ -1,4 +1,5 @@
 """The HaHeliotherm integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -92,9 +93,7 @@ class HaHeliothermModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(
-            host=host, port=port, timeout=3, retries=3
-        )
+        self._client = ModbusTcpClient(host=host, port=port, timeout=3, retries=3)
         self._lock = threading.Lock()
         self._name = name
         self._scan_interval = timedelta(seconds=scan_interval)
@@ -228,7 +227,7 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
-            
+
         if entity.entity_description.key == "climate_rlt_kuehlen":
             temp = float(option["temperature"])
             await self.set_rltkuehlen(temp)
@@ -440,10 +439,14 @@ class HaHeliothermModbusHub:
         self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
 
         select_mkr1_betriebsart = modbusdata3.registers[7]
-        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
+        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(
+            select_mkr1_betriebsart
+        )
 
         select_mkr2_betriebsart = modbusdata3.registers[12]
-        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
+        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(
+            select_mkr2_betriebsart
+        )
 
         climate_hkr_raum_soll = modbusdata3.registers[1]
         self.data["climate_hkr_raum_soll"] = {
@@ -454,7 +457,7 @@ class HaHeliothermModbusHub:
         self.data["climate_rlt_kuehlen"] = {
             "temperature": self.checkval(climate_rlt_kuehlen, 0.1)
         }
-        
+
         climate_ww_bereitung_max = modbusdata3.registers[5]
         climate_ww_bereitung_min = modbusdata3.registers[6]
         self.data["climate_ww_bereitung"] = {

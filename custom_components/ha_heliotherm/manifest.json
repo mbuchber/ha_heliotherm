@@ -1,4 +1,4 @@
-{  
+{
   "domain": "ha_heliotherm",
   "name": "HaHeliotherm",
   "codeowners": ["@mbuchber"],
@@ -11,5 +11,5 @@
   "requirements": ["pymodbus"],
   "ssdp": [],
   "version": "v1.0.33",
-  "zeroconf": []  
+  "zeroconf": []
 }

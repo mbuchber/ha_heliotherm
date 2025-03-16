@@ -19,8 +19,9 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberDeviceClass,
 )
+from homeassistant.const import UnitOfPressure, UnitOfTemperature, CONF_NAME
 
-from homeassistant.const import *
+# from homeassistant.const import *
 
 DOMAIN = "ha_heliotherm"
 DEFAULT_NAME = "Heliotherm Heatpump"

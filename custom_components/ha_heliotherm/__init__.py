@@ -55,10 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
 
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
@@ -405,32 +402,37 @@ class HaHeliothermModbusHub:
         )
 
         # -----------------------------------------------------------------------------------
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, byteorder=Endian.BIG
+        # decoder = BinaryPayloadDecoder.fromRegisters(
+        #    modbusdata2.registers, byteorder=Endian.BIG
+        # )
+        decoder = self._client.convert_from_registers(
+            modbusdata2.registers,
+            data_type=self._client.DATATYPE.UINT32,
+            word_order="big",
         )
 
-        wmz_heizung = decoder.decode_32bit_uint()
+        wmz_heizung = decoder[0]
         self.data["wmz_heizung"] = wmz_heizung
 
-        stromz_heizung = decoder.decode_32bit_uint()
+        stromz_heizung = decoder[1]
         self.data["stromz_heizung"] = stromz_heizung
 
-        wmz_brauchwasser = decoder.decode_32bit_uint()
+        wmz_brauchwasser = decoder[2]
         self.data["wmz_brauchwasser"] = wmz_brauchwasser
 
-        stromz_brauchwasser = decoder.decode_32bit_uint()
+        stromz_brauchwasser = decoder[3]
         self.data["stromz_brauchwasser"] = stromz_brauchwasser
 
-        stromz_gesamt = decoder.decode_32bit_uint()
+        stromz_gesamt = decoder[4]
         self.data["stromz_gesamt"] = stromz_gesamt
 
-        stromz_leistung = decoder.decode_32bit_uint()
+        stromz_leistung = decoder[5]
         self.data["stromz_leistung"] = stromz_leistung
 
-        wmz_gesamt = decoder.decode_32bit_uint()
+        wmz_gesamt = decoder[6]
         self.data["wmz_gesamt"] = wmz_gesamt
 
-        wmz_leistung = decoder.decode_32bit_uint() * 0.1
+        wmz_leistung = decoder[7] * 0.1
         self.data["wmz_leistung"] = wmz_leistung
 
         # -----------------------------------------------------------------------------------

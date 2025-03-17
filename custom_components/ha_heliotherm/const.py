@@ -97,6 +97,20 @@ CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
         temperature_unit="°C",
         supported_features=ClimateEntityFeature.TARGET_TEMPERATURE_RANGE,
     ),
+
+#---------------------eingefügt-------------------------------------------------
+    "climate_rl_soll": HaHeliothermClimateEntityDescription(
+        name="Rücklaufsolltemperatur",
+        key="climate_rl_soll",
+        min_value=5,
+        max_value=65,
+        step=0.5,
+        temperature_unit="°C",
+        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE
+        #----hier keine Range, sondern fester Wert-------
+    )
+#---------------------eingefügt-------------------------------------------------
+
 }
 
 NUMBER_TYPES: dict[str, list[HaHeliothermNumberEntityDescription]] = {}

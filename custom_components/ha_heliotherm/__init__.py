@@ -1,4 +1,5 @@
 """The HaHeliotherm integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -54,10 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # """Register the hub."""
     hass.data[DOMAIN][name] = {"hub": hub}
 
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
@@ -92,9 +90,7 @@ class HaHeliothermModbusHub:
     ):
         """Initialize the Modbus hub."""
         self._hass = hass
-        self._client = ModbusTcpClient(
-            host=host, port=port, timeout=3, retries=3, retry_on_empty=True
-        )
+        self._client = ModbusTcpClient(host=host, port=port, timeout=3, retries=3)
         self._lock = threading.Lock()
         self._name = name
         self._scan_interval = timedelta(seconds=scan_interval)
@@ -154,7 +150,7 @@ class HaHeliothermModbusHub:
     def read_input_registers(self, slave, address, count):
         """Read holding registers."""
         with self._lock:
-            return self._client.read_input_registers(address, count, slave)
+            return self._client.read_input_registers(address, count=count, slave=slave)
 
     def getsignednumber(self, number, bitlength=16):
         mask = (2**bitlength) - 1
@@ -228,20 +224,22 @@ class HaHeliothermModbusHub:
         if entity.entity_description.key == "climate_hkr_raum_soll":
             temp = float(option["temperature"])
             await self.set_raumtemperatur(temp)
-            
+
         if entity.entity_description.key == "climate_rlt_kuehlen":
             temp = float(option["temperature"])
             await self.set_rltkuehlen(temp)
 
-        if entity.entity_description.key == "climate_rl_soll":
-            temp = float(option["temperature"])
-            await self.set_rl_soll(temp)
-            
         if entity.entity_description.key == "climate_ww_bereitung":
             tmin = float(option["target_temp_low"])
             tmax = float(option["target_temp_high"])
             await self.set_ww_bereitung(tmin, tmax)
-            
+
+#---------------------eingefügt-------------------------------------------------
+        if entity.entity_description.key == "climate_rl_soll":
+            temp = float(option["temperature"])
+            await self.set_rl_soll(temp)
+#---------------------eingefügt-------------------------------------------------
+
     async def set_betriebsart(self, betriebsart: str):
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
@@ -277,15 +275,6 @@ class HaHeliothermModbusHub:
         self._client.write_register(address=104, value=temp_int, slave=1)
         await self.async_refresh_modbus_data()
 
-    async def set_rl_soll(self, temperature: float):
-        if temperature is None:
-            return
-        temp_int = int(temperature * 10)
-        temp_activate_rl_soll = 1
-        self._client.write_register(address=102, value=temp_int, slave=1)
-        self._client.write_register(address=103, value=temp_activate_rl_soll, slave=1)
-        await self.async_refresh_modbus_data()
-    
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
         if temp_min is None or temp_max is None:
             return
@@ -294,6 +283,17 @@ class HaHeliothermModbusHub:
         self._client.write_register(address=105, value=temp_max_int, slave=1)
         self._client.write_register(address=106, value=temp_min_int, slave=1)
         await self.async_refresh_modbus_data()
+
+#---------------------eingefügt-------------------------------------------------
+    async def set_rl_soll(self, temperature: float):
+        if temperature is None:
+            return
+        temp_int = int(temperature * 10)
+        temp_activate_rl_soll = 1
+        self._client.write_register(address=102, value=temp_int, slave=1)
+        self._client.write_register(address=103, value=temp_activate_rl_soll, slave=1)
+        await self.async_refresh_modbus_data()
+#---------------------eingefügt-------------------------------------------------
 
     def read_modbus_registers(self):
         """Read from modbus registers"""
@@ -407,9 +407,10 @@ class HaHeliothermModbusHub:
         expansionsventil = modbusdata.registers[30]
         self.data["expansionsventil"] = self.checkval(expansionsventil, 0.1)
 
+#---------------------geändert-------------------------------------------------
         verdichteranforderung = modbusdata.registers[31]
         self.data["verdichteranforderung"] = (
-            "Kühlen"
+            "unbekannt"
             if (verdichteranforderung == 10)
             else "Heizen"
             if (verdichteranforderung == 20)
@@ -419,34 +420,40 @@ class HaHeliothermModbusHub:
             if (verdichteranforderung == 40)
             else "Keine"
         )
+#---------------------geändert-------------------------------------------------
 
         # -----------------------------------------------------------------------------------
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            modbusdata2.registers, byteorder=Endian.BIG
+        # decoder = BinaryPayloadDecoder.fromRegisters(
+        #    modbusdata2.registers, byteorder=Endian.BIG
+        # )
+        decoder = self._client.convert_from_registers(
+            modbusdata2.registers,
+            data_type=self._client.DATATYPE.UINT32,
+            word_order="big",
         )
 
-        wmz_heizung = decoder.decode_32bit_uint()
+        wmz_heizung = decoder[0]
         self.data["wmz_heizung"] = wmz_heizung
 
-        stromz_heizung = decoder.decode_32bit_uint()
+        stromz_heizung = decoder[1]
         self.data["stromz_heizung"] = stromz_heizung
 
-        wmz_brauchwasser = decoder.decode_32bit_uint()
+        wmz_brauchwasser = decoder[2]
         self.data["wmz_brauchwasser"] = wmz_brauchwasser
 
-        stromz_brauchwasser = decoder.decode_32bit_uint()
+        stromz_brauchwasser = decoder[3]
         self.data["stromz_brauchwasser"] = stromz_brauchwasser
 
-        stromz_gesamt = decoder.decode_32bit_uint()
+        stromz_gesamt = decoder[4]
         self.data["stromz_gesamt"] = stromz_gesamt
 
-        stromz_leistung = decoder.decode_32bit_uint()
+        stromz_leistung = decoder[5]
         self.data["stromz_leistung"] = stromz_leistung
 
-        wmz_gesamt = decoder.decode_32bit_uint()
+        wmz_gesamt = decoder[6]
         self.data["wmz_gesamt"] = wmz_gesamt
 
-        wmz_leistung = decoder.decode_32bit_uint() * 0.1
+        wmz_leistung = decoder[7] * 0.1
         self.data["wmz_leistung"] = wmz_leistung
 
         # -----------------------------------------------------------------------------------
@@ -455,10 +462,14 @@ class HaHeliothermModbusHub:
         self.data["select_betriebsart"] = self.getbetriebsart(select_betriebsart)
 
         select_mkr1_betriebsart = modbusdata3.registers[7]
-        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(select_mkr1_betriebsart)
+        self.data["select_mkr1_betriebsart"] = self.getbetriebsart(
+            select_mkr1_betriebsart
+        )
 
         select_mkr2_betriebsart = modbusdata3.registers[12]
-        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(select_mkr2_betriebsart)
+        self.data["select_mkr2_betriebsart"] = self.getbetriebsart(
+            select_mkr2_betriebsart
+        )
 
         climate_hkr_raum_soll = modbusdata3.registers[1]
         self.data["climate_hkr_raum_soll"] = {
@@ -470,11 +481,6 @@ class HaHeliothermModbusHub:
             "temperature": self.checkval(climate_rlt_kuehlen, 0.1)
         }
 
-        climate_rl_soll = modbusdata3.registers[2]
-        self.data["climate_rl_soll"] = {
-            "temperature": self.checkval(climate_rl_soll, 0.1)
-        }
-        
         climate_ww_bereitung_max = modbusdata3.registers[5]
         climate_ww_bereitung_min = modbusdata3.registers[6]
         self.data["climate_ww_bereitung"] = {
@@ -482,6 +488,13 @@ class HaHeliothermModbusHub:
             "target_temp_high": self.checkval(climate_ww_bereitung_max, 0.1),
             "temperature": self.checkval(temp_brauchwasser, 0.1),
         }
+
+#---------------------eingefügt-------------------------------------------------
+        climate_rl_soll = modbusdata3.registers[2]
+        self.data["climate_rl_soll"] = {
+            "temperature": self.checkval(climate_rl_soll, 0.1)
+        }
+#---------------------eingefügt-------------------------------------------------
 
         # externe_anforderung = modbusdata3.registers[20]
 

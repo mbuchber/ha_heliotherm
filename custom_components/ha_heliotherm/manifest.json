@@ -1,4 +1,4 @@
-{  
+{
   "domain": "ha_heliotherm",
   "name": "HaHeliotherm",
   "codeowners": ["@mbuchber"],
@@ -8,8 +8,8 @@
   "homekit": {},
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/mbuchber/ha_heliotherm/issues",
-  "requirements": ["pymodbus==3.6.6"],
+  "requirements": ["pymodbus"],
   "ssdp": [],
-  "version": "v1.0.26",
-  "zeroconf": []  
+  "version": "v1.0.38",
+  "zeroconf": []
 }

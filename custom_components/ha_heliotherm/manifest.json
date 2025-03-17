@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/mbuchber/ha_heliotherm/issues",
   "requirements": ["pymodbus"],
   "ssdp": [],
-  "version": "v1.0.38",
+  "version": "v1.0.39",
   "zeroconf": []
 }

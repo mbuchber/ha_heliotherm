@@ -19,8 +19,9 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberDeviceClass,
 )
+from homeassistant.const import UnitOfPressure, UnitOfTemperature, CONF_NAME
 
-from homeassistant.const import *
+# from homeassistant.const import *
 
 DOMAIN = "ha_heliotherm"
 DEFAULT_NAME = "Heliotherm Heatpump"
@@ -87,17 +88,6 @@ CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
         step=1,
         temperature_unit="°C",
     ),
-
-    "climate_rl_soll": HaHeliothermClimateEntityDescription(
-        name="Rücklaufsolltemperatur",
-        key="climate_rl_soll",
-        min_value=5,
-        max_value=65,
-        step=0.5,
-        temperature_unit="°C",
-        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE,
-        #----hier keine Range, sondern fester Wert-------
-    
     "climate_ww_bereitung": HaHeliothermClimateEntityDescription(
         name="Warmwasserbereitung",
         key="climate_ww_bereitung",
@@ -107,6 +97,20 @@ CLIMATE_TYPES: dict[str, list[HaHeliothermClimateEntityDescription]] = {
         temperature_unit="°C",
         supported_features=ClimateEntityFeature.TARGET_TEMPERATURE_RANGE,
     ),
+
+#---------------------eingefügt-------------------------------------------------
+    "climate_rl_soll": HaHeliothermClimateEntityDescription(
+        name="Rücklaufsolltemperatur",
+        key="climate_rl_soll",
+        min_value=5,
+        max_value=65,
+        step=0.5,
+        temperature_unit="°C",
+        supported_features=ClimateEntityFeature.TARGET_TEMPERATURE
+        #----hier keine Range, sondern fester Wert-------
+    )
+#---------------------eingefügt-------------------------------------------------
+
 }
 
 NUMBER_TYPES: dict[str, list[HaHeliothermNumberEntityDescription]] = {}
@@ -251,7 +255,6 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
         name="n-Soll Verdichter",
         key="n_soll_verdichter",
         native_unit_of_measurement="‰",
-        device_class=SensorDeviceClass.PRESSURE,
     ),
     "cop": HaHeliothermSensorEntityDescription(
         name="COP",
@@ -292,7 +295,6 @@ SENSOR_TYPES: dict[str, list[HaHeliothermSensorEntityDescription]] = {
         name="Expansionsventil",
         key="expansionsventil",
         native_unit_of_measurement="‰",
-        device_class=SensorDeviceClass.PRESSURE,
     ),
     "verdichteranforderung": HaHeliothermSensorEntityDescription(
         name="Anforderung",

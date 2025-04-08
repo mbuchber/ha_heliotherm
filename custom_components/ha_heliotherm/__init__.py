@@ -429,7 +429,6 @@ class HaHeliothermModbusHub:
         decoder = self._client.convert_from_registers(
             modbusdata2.registers,
             data_type=self._client.DATATYPE.UINT32,
-            word_order="big",
         )
 
         wmz_heizung = decoder[0]

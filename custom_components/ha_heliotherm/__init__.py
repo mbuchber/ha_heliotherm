@@ -148,7 +148,7 @@ class HaHeliothermModbusHub:
     def read_input_registers(self, slave, address, count):
         """Read holding registers."""
         with self._lock:
-            return self._client.read_input_registers(address, count=count, slave=slave)
+            return self._client.read_input_registers(address, count=count, device_id=slave)
 
     def getsignednumber(self, number, bitlength=16):
         mask = (2**bitlength) - 1

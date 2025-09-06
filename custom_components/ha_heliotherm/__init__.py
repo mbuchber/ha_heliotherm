@@ -10,7 +10,6 @@ from typing import Optional
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ConnectionException
-from pymodbus.payload import BinaryPayloadDecoder
 import voluptuous as vol
 
 from homeassistant.helpers.entity import Entity

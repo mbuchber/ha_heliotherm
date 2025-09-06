@@ -298,7 +298,7 @@ class HaHeliothermModbusHub:
         modbusdata = self.read_input_registers(slave=1, address=10, count=32)
         modbusdata2 = self.read_input_registers(slave=1, address=60, count=16)
         modbusdata3 = self._client.read_holding_registers(
-            address=100, count=27, slave=1
+            address=100, count=27, device_id=1
         )
 
         # if modbusdata.isError():

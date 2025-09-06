@@ -9,7 +9,7 @@ import threading
 from typing import Optional
 
 from pymodbus.client import ModbusTcpClient
-from pymodbus.payload import Endian
+from pymodbus.constants import ENDIAN
 from pymodbus.exceptions import ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
 import voluptuous as vol
@@ -424,7 +424,7 @@ class HaHeliothermModbusHub:
 
         # -----------------------------------------------------------------------------------
         # decoder = BinaryPayloadDecoder.fromRegisters(
-        #    modbusdata2.registers, byteorder=Endian.BIG
+        #    modbusdata2.registers, byteorder=ENDIAN.BIG
         # )
         decoder = self._client.convert_from_registers(
             modbusdata2.registers,

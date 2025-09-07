@@ -242,35 +242,35 @@ class HaHeliothermModbusHub:
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        self._client.write_register(address=100, value=betriebsart_nr, slave=1)
+        self._client.write_register(address=100, value=betriebsart_nr, device_id=1)
         await self.async_refresh_modbus_data()
 
     async def set_mkr1_betriebsart(self, betriebsart: str):
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        self._client.write_register(address=107, value=betriebsart_nr, slave=1)
+        self._client.write_register(address=107, value=betriebsart_nr, device_id=1)
         await self.async_refresh_modbus_data()
 
     async def set_mkr2_betriebsart(self, betriebsart: str):
         betriebsart_nr = self.getbetriebsartnr(betriebsart)
         if betriebsart_nr is None:
             return
-        self._client.write_register(address=112, value=betriebsart_nr, slave=1)
+        self._client.write_register(address=112, value=betriebsart_nr, device_id=1)
         await self.async_refresh_modbus_data()
 
     async def set_raumtemperatur(self, temperature: float):
         if temperature is None:
             return
         temp_int = int(temperature * 10)
-        self._client.write_register(address=101, value=temp_int, slave=1)
+        self._client.write_register(address=101, value=temp_int, device_id=1)
         await self.async_refresh_modbus_data()
 
     async def set_rltkuehlen(self, temperature: float):
         if temperature is None:
             return
         temp_int = int(temperature * 10)
-        self._client.write_register(address=104, value=temp_int, slave=1)
+        self._client.write_register(address=104, value=temp_int, device_id=1)
         await self.async_refresh_modbus_data()
 
     async def set_ww_bereitung(self, temp_min: float, temp_max: float):
@@ -278,8 +278,8 @@ class HaHeliothermModbusHub:
             return
         temp_max_int = int(temp_max * 10)
         temp_min_int = int(temp_min * 10)
-        self._client.write_register(address=105, value=temp_max_int, slave=1)
-        self._client.write_register(address=106, value=temp_min_int, slave=1)
+        self._client.write_register(address=105, value=temp_max_int, device_id=1)
+        self._client.write_register(address=106, value=temp_min_int, device_id=1)
         await self.async_refresh_modbus_data()
 
 #---------------------eingefügt-------------------------------------------------
@@ -288,8 +288,8 @@ class HaHeliothermModbusHub:
             return
         temp_int = int(temperature * 10)
         temp_activate_rl_soll = 1
-        self._client.write_register(address=102, value=temp_int, slave=1)
-        self._client.write_register(address=103, value=temp_activate_rl_soll, slave=1)
+        self._client.write_register(address=102, value=temp_int, device_id=1)
+        self._client.write_register(address=103, value=temp_activate_rl_soll, device_id=1)
         await self.async_refresh_modbus_data()
 #---------------------eingefügt-------------------------------------------------
 
